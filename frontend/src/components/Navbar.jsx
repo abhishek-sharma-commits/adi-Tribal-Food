@@ -6,6 +6,7 @@ import Logo from './Logo.jsx';
 import SearchPill from './SearchPill.jsx';
 import UserMenu from './UserMenu.jsx';
 
+
 const LINKS = [
   { to: '/recipes', label: 'Explore Recipes' },
   { to: '/community', label: 'Community Gallery' },
