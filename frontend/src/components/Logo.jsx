@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import logo from '../public/logo.jpeg';
 
 export default function Logo({ className = '' }) {
   return (
@@ -7,7 +6,7 @@ export default function Logo({ className = '' }) {
       {/* <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-sm font-bold text-white" aria-hidden="true">
         A
       </span> */}
-      <img className='h-10 w-12 rounded-2xl bg-neutral-800 '  src={logo} alt="" />
+      <img className='h-10 w-12 rounded-2xl bg-neutral-800 '  src="/logo.jpeg" alt="" />
       <span className="text-lg font-bold tracking-tight text-brand">Adi Tribe Food </span>
     </Link>
   );
