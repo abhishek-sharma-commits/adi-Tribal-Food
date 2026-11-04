@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const uploadAuthSchema = z
-  .object({ purpose: z.enum(['community', 'official']).default('community') })
+  .object({ purpose: z.enum(['official']).default('official') })
   .strict();
 
 const objectId = z.string().regex(/^[a-f\d]{24}$/i, 'Invalid id');

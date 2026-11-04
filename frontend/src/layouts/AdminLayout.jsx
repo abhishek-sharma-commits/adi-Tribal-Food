@@ -1,13 +1,13 @@
-import { BookOpen, Images, LayoutDashboard, ShieldCheck, Tags, UtensilsCrossed, Users } from 'lucide-react';
+import { Images, LayoutDashboard, Tags, UtensilsCrossed, Users } from 'lucide-react';
 import { NavLink, Outlet } from 'react-router-dom';
 
 const NAV = [
   { to: '/admin', label: 'Overview', icon: LayoutDashboard, end: true },
   { to: '/admin/recipes', label: 'Recipes', icon: UtensilsCrossed },
-  { to: '/admin/blogs', label: 'Stories', icon: BookOpen },
+  // { to: '/admin/blogs', label: 'Stories', icon: BookOpen },
   { to: '/admin/media', label: 'Official media', icon: Images },
   { to: '/admin/categories', label: 'Categories', icon: Tags },
-  { to: '/admin/moderation', label: 'Moderation', icon: ShieldCheck },
+  // { to: '/admin/moderation', label: 'Moderation', icon: ShieldCheck },
   { to: '/admin/users', label: 'Users', icon: Users },
 ];
 

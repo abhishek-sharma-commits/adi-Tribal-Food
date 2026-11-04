@@ -38,8 +38,8 @@ export default function Register() {
   return (
     <div className="container-page flex justify-center py-12 sm:py-16">
       <div className="w-full max-w-md">
-        <h1 className="text-3xl font-bold tracking-tight">Join the community</h1>
-        <p className="mt-2 text-ink-muted">Create an account to share your food photos and videos with the Adi Food community.</p>
+        <h1 className="text-3xl font-bold tracking-tight">Create an account</h1>
+        <p className="mt-2 text-ink-muted">Create an account to manage your Adi Food profile.</p>
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate className="mt-8 space-y-5">
           {formError && (

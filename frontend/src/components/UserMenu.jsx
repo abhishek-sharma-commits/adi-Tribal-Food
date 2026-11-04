@@ -44,7 +44,6 @@ export default function UserMenu() {
           {[
             ...(user.role === 'admin' ? [['/admin', 'Admin dashboard']] : []),
             ['/dashboard', 'Dashboard'],
-            ['/dashboard/uploads', 'My uploads'],
             ['/dashboard/profile', 'Profile'],
           ].map(([to, label]) => (
             <Link key={to} to={to} role="menuitem" onClick={() => setOpen(false)} className="block rounded-xl px-3 py-2 text-sm hover:bg-surface">

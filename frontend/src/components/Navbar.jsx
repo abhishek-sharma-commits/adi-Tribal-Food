@@ -9,8 +9,9 @@ import UserMenu from './UserMenu.jsx';
 
 const LINKS = [
   { to: '/recipes', label: 'Explore Recipes' },
-  { to: '/community', label: 'Community Gallery' },
-  { to: '/blogs', label: 'Stories' },
+  // Community gallery and stories will be re-enabled when those features launch.
+  // { to: '/community', label: 'Community Gallery' },
+  // { to: '/blogs', label: 'Stories' },
   { to: '/about', label: 'About' },
 ];
 

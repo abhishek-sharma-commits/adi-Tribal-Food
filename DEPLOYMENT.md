@@ -84,7 +84,7 @@ The API sets its own security headers (helmet). Add equivalent headers (and a Co
 ## 5. ImageKit
 1. Create an account and note the **public key**, **private key** and **URL endpoint**.
 2. Uploads go from the browser straight to ImageKit using short-lived signatures from `POST /api/media/upload-auth`.
-   - Community uploads land in `/adi-food/community/<userId>/`, official uploads in `/adi-food/official/`.
+   - Community uploads are currently paused; official uploads land in `/adi-food/official/`.
 3. The server checks every submitted file with ImageKit (folder, type, size) and deletes files that fail the checks. It also deletes files when their record is deleted or replaced.
 4. Do not enable public-write settings on the account beyond what ImageKit's signed uploads require.
 

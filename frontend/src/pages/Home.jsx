@@ -2,12 +2,11 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AsyncSection from '../components/AsyncSection.jsx';
 import SearchPill from '../components/SearchPill.jsx';
-import BlogCard from '../features/blogs/BlogCard.jsx';
 import GalleryTile from '../features/community/GalleryTile.jsx';
 import MediaPreview from '../features/community/MediaPreview.jsx';
 import RecipeCard from '../features/recipes/RecipeCard.jsx';
 import { useApi } from '../hooks/useApi.js';
-import { getCategories, listBlogs, listGallery, listOfficialMedia, listRecipes } from '../services/content.js';
+import { getCategories, listOfficialMedia, listRecipes } from '../services/content.js';
 
 const HERO_IMAGE = import.meta.env.VITE_HERO_IMAGE_URL;
 const GRID_4 = 'grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-4';
@@ -27,15 +26,12 @@ function Hero() {
         <div className="relative px-6 py-14 sm:px-12 sm:py-20 lg:py-28">
           <h1 className="max-w-3xl text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl">Discover the Flavours of the Adi Tribe</h1>
           <p className={`mt-4 max-w-2xl text-base sm:text-lg ${withImage ? 'text-white/90' : 'text-ink-muted'}`}>
-            Traditional recipes, ingredients, food culture and stories from the Adi community of Arunachal Pradesh, documented with care and shared by the people who keep them alive.
+            Traditional recipes and ingredients from the Adi people of Arunachal Pradesh, documented with care.
           </p>
           <SearchPill onSearch={search} className="mt-8 max-w-2xl text-ink" />
           <div className="mt-6 flex flex-wrap gap-3">
             <Link to="/recipes" className="btn-primary">
               Explore Recipes
-            </Link>
-            <Link to="/register" className={withImage ? 'btn border border-white bg-transparent text-white hover:bg-white/10' : 'btn-secondary'}>
-              Join the Community
             </Link>
           </div>
         </div>
@@ -89,8 +85,6 @@ function FeaturedMedia() {
 
 export default function Home() {
   const featured = useApi((s) => listRecipes({ featured: true, limit: 8 }, s), []);
-  const gallery = useApi((s) => listGallery({ limit: 8 }, s), []);
-  const blogs = useApi((s) => listBlogs({ limit: 3 }, s), []);
 
   return (
     <>
@@ -112,7 +106,8 @@ export default function Home() {
 
       <FeaturedMedia />
 
-      <AsyncSection
+      {/* Community gallery and cultural stories are paused for a later release. */}
+      {/* <AsyncSection
         title="From the community"
         subtitle="Photos and videos shared by our members"
         linkTo="/community"
@@ -124,9 +119,9 @@ export default function Home() {
         empty={{ title: 'No community uploads yet', text: 'Approved photos and videos will appear here.' }}
       >
         {(items) => items.map((g) => <GalleryTile key={g._id} item={g} />)}
-      </AsyncSection>
+      </AsyncSection> */}
 
-      <AsyncSection
+      {/* <AsyncSection
         title="Cultural stories"
         subtitle="Food, tradition and the people behind them"
         linkTo="/blogs"
@@ -138,7 +133,7 @@ export default function Home() {
         empty={{ title: 'No stories published yet', text: 'New stories will appear here.' }}
       >
         {(items) => items.map((b) => <BlogCard key={b._id} blog={b} />)}
-      </AsyncSection>
+      </AsyncSection> */}
     </>
   );
 }

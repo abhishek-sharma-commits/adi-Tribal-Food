@@ -29,12 +29,14 @@ Deploying: see [DEPLOYMENT.md](DEPLOYMENT.md).
 ## Status
 | Area | State |
 |---|---|
-| Backend API (auth, recipes, blogs, community uploads, moderation, official media, users, dashboard) | complete |
-| Frontend: design system, API client, auth, homepage, Explore Recipes, Recipe Details, Stories (blog list + detail), Community Gallery, upload flow | complete |
-| Frontend: user dashboard (overview, my uploads with edit/delete/rejection reasons, upload, profile + password) | complete |
-| Frontend: admin dashboard: layout, overview stats, community moderation queue, user management, recipe management (list, create/edit form with uploads, preview, publish, feature, delete), story/blog management (rich-text editor, tags, cover upload, preview, publish, archive, delete) | complete |
+| Backend API (auth, recipes, official media, users, dashboard) | active; stories and community routes paused |
+| Frontend: design system, API client, auth, homepage, Explore Recipes, Recipe Details | complete |
+| Frontend: user dashboard (profile + password) | active; upload dashboard paused |
+| Frontend: admin dashboard, user management, recipe and official-media management | active; stories and community moderation paused |
 | Frontend: admin official-media management (upload, details, publish, feature, delete) with featured media on the homepage, and category management (create, edit, usage counts, protected delete) | complete |
-| Frontend: About, Community Guidelines, Contact, Privacy Policy and Terms pages (drafts; see DEPLOYMENT.md) | complete |
+| Frontend: About, Contact, Privacy Policy and Terms pages (drafts; see DEPLOYMENT.md) | complete |
+
+Stories and community features are temporarily disabled at the frontend and API route layers. Their implementation and data are retained for a later release.
 
 `backend/tests/e2e.mjs` is an optional end-to-end check you can run against your own database. Nothing in the app imports it; delete it freely.
 

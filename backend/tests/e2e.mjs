@@ -6,15 +6,12 @@
  *   E2E_ADMIN_EMAIL=admin@example.com E2E_ADMIN_PASSWORD='...' \
  *   node tests/e2e.mjs
  *
- * Optional: E2E_IMAGEKIT=1 also runs the real upload -> submit -> moderate flow
- * (the server must have valid IMAGEKIT_* settings).
- * It creates data (test users, one recipe, one blog, submissions) and deletes what it can.
+ * It creates data (test users and one recipe) and deletes what it can.
  * Use a development database.
  */
 const BASE = (process.env.BASE_URL ?? 'http://localhost:5000/api').replace(/\/$/, '');
 const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL;
 const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD;
-const WITH_IMAGEKIT = process.env.E2E_IMAGEKIT === '1';
 if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
   console.error('Set E2E_ADMIN_EMAIL and E2E_ADMIN_PASSWORD (run `npm run seed` first).');
   process.exit(2);
@@ -63,7 +60,7 @@ const stamp = Date.now();
 const anon = new Client('anon'), admin = new Client('admin'), alice = new Client('alice');
 const aliceEmail = `e2e.alice.${stamp}@example.com`;
 const PASSWORD = 'E2e-Passw0rd!';
-const created = { recipe: null, blog: null };
+const created = { recipe: null };
 
 try {
   section('Health');
@@ -127,70 +124,14 @@ try {
   expect('deleted recipe gone', await admin.get(`/admin/recipes/${created.recipe}`), 404, 'RECIPE_NOT_FOUND');
   created.recipe = null;
 
-  section('Blogs: sanitising and visibility');
-  const bslug = `e2e-blog-${stamp}`;
-  const blog = await admin.post('/admin/blogs', { title: `E2E Blog ${stamp}`, slug: bslug, content: '<p>Hello <script>alert(1)</script><a href="javascript:x">bad</a></p>', tags: ['E2E', 'e2e'] });
-  expect('admin creates blog', blog, 201);
-  created.blog = blog.body.data?._id;
-  check('script and javascript: stripped, tags deduped', !/script|javascript:/i.test(blog.body.data?.content ?? 'script') && blog.body.data?.tags?.length === 1);
-  check('excerpt derived from content', blog.body.data?.excerpt === 'Hello bad');
-  expect('draft blog hidden', await anon.get(`/blogs/${bslug}`), 404, 'BLOG_NOT_FOUND');
-  expect('publish blog', await admin.patch(`/admin/blogs/${created.blog}`, { status: 'published' }), 200);
-  expect('published blog visible', await anon.get(`/blogs/${bslug}`), 200);
-  check('blog appears in public list', (await anon.get(`/blogs?tag=e2e`)).body.data?.some((b) => b.slug === bslug));
-  expect('delete blog', await admin.del(`/admin/blogs/${created.blog}`), 200);
-  created.blog = null;
-
-  section('Community submissions (no provider needed)');
-  const subBody = { title: 'E2E photo', category: category._id, mediaType: 'image', mediaFileId: 'e2efileid1', consent: true };
-  expect('anonymous cannot submit', await anon.post('/community/submissions', { ...subBody, mediaUrl: 'https://example.com/x.jpg' }), 401, 'UNAUTHENTICATED');
-  expect('status cannot be injected', await alice.post('/community/submissions', { ...subBody, mediaUrl: 'https://example.com/x.jpg', status: 'approved' }), 400, 'VALIDATION_ERROR');
-  expect('consent required', await alice.post('/community/submissions', { ...subBody, mediaUrl: 'https://example.com/x.jpg', consent: false }), 400, 'VALIDATION_ERROR');
-  const foreign = await alice.post('/community/submissions', { ...subBody, mediaUrl: 'https://example.com/x.jpg' });
-  check('foreign media URL refused', foreign.status === 400 && foreign.code === 'MEDIA_URL_NOT_ALLOWED' || foreign.status === 503, `(got ${foreign.status} ${foreign.code})`);
-  const gal = await anon.get('/community/gallery');
-  expect('gallery is public', gal, 200);
-  const mine = await alice.get('/community/submissions/mine');
-  expect('my submissions', mine, 200);
-  check('counts block present', mine.body.meta?.counts && 'pending' in mine.body.meta.counts);
-
-  if (WITH_IMAGEKIT) {
-    section('Community submissions (live ImageKit)');
-    const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
-    const authRes = await alice.post('/media/upload-auth', {});
-    expect('upload-auth', authRes, 200);
-    const a = authRes.body.data;
-    const form = new FormData();
-    form.set('file', new Blob([PNG], { type: 'image/png' }), `e2e-${stamp}.png`);
-    form.set('fileName', `e2e-${stamp}.png`);
-    form.set('publicKey', a.publicKey); form.set('signature', a.signature);
-    form.set('expire', String(a.expire)); form.set('token', a.token);
-    form.set('folder', a.folder); form.set('useUniqueFileName', 'true');
-    const up = await fetch(a.uploadUrl, { method: 'POST', body: form });
-    const file = await up.json();
-    check('direct upload to ImageKit', up.ok && file.fileId, JSON.stringify(file).slice(0, 200));
-    const sub = await alice.post('/community/submissions', { title: 'E2E real photo', category: category._id, mediaType: 'image', mediaUrl: file.url, mediaFileId: file.fileId, consent: true });
-    expect('submit verified upload', sub, 201);
-    const sid = sub.body.data?._id;
-    check('starts pending', sub.body.data?.status === 'pending');
-    expect('same upload cannot be submitted twice', await alice.post('/community/submissions', { title: 'again', category: category._id, mediaType: 'image', mediaUrl: file.url, mediaFileId: file.fileId, consent: true }), 409, 'MEDIA_ALREADY_USED');
-    check('pending item not in public gallery', !(await anon.get('/community/gallery')).body.data?.some((s) => s._id === sid));
-    check('admin sees it in pending tab', (await admin.get('/admin/submissions?status=pending')).body.data?.some((s) => s._id === sid));
-    expect('reject requires a reason', await admin.patch(`/admin/submissions/${sid}/review`, { status: 'rejected' }), 400, 'VALIDATION_ERROR');
-    expect('approve', await admin.patch(`/admin/submissions/${sid}/review`, { status: 'approved' }), 200);
-    check('approved item is in the gallery', (await anon.get('/community/gallery')).body.data?.some((s) => s._id === sid));
-    check('approved item is NOT a recipe', !(await anon.get('/recipes?limit=50')).body.data?.some((r) => r.title === 'E2E real photo'));
-    expect('approved submission is locked for the user', await alice.patch(`/community/submissions/${sid}`, { title: 'x' }), 409, 'SUBMISSION_LOCKED');
-    expect('admin rejects approved item', await admin.patch(`/admin/submissions/${sid}/review`, { status: 'rejected', reason: 'e2e reject' }), 200);
-    check('rejected item leaves the gallery', !(await anon.get('/community/gallery')).body.data?.some((s) => s._id === sid));
-    const seen = await alice.get(`/community/submissions/mine/${sid}`);
-    check('user sees the rejection reason', seen.body.data?.rejectionReason === 'e2e reject');
-    expect('editing a rejected item re-queues it', await alice.patch(`/community/submissions/${sid}`, { title: 'E2E retitled' }), 200);
-    check('back to pending', (await alice.get(`/community/submissions/mine/${sid}`)).body.data?.status === 'pending');
-    expect('user deletes own submission', await alice.del(`/community/submissions/${sid}`), 200);
-  } else {
-    console.log('  (skipped live ImageKit flow: set E2E_IMAGEKIT=1 with a configured server)');
-  }
+  section('Paused stories and community features');
+  expect('public stories are disabled', await anon.get('/blogs'), 404, 'ROUTE_NOT_FOUND');
+  expect('public story detail is disabled', await anon.get('/blogs/example'), 404, 'ROUTE_NOT_FOUND');
+  expect('community gallery is disabled', await anon.get('/community/gallery'), 404, 'ROUTE_NOT_FOUND');
+  expect('community submissions are disabled', await alice.get('/community/submissions/mine'), 404, 'ROUTE_NOT_FOUND');
+  expect('admin stories are disabled', await admin.get('/admin/blogs'), 404, 'ROUTE_NOT_FOUND');
+  expect('community moderation is disabled', await admin.get('/admin/submissions'), 404, 'ROUTE_NOT_FOUND');
+  expect('community upload authorization is disabled', await alice.post('/media/upload-auth', { purpose: 'community' }), 400, 'VALIDATION_ERROR');
 
   section('User management');
   const aliceId = me.body.data?.user?.id;
@@ -260,13 +201,12 @@ try {
   section('Dashboard');
   const dash = await admin.get('/admin/dashboard');
   expect('dashboard', dash, 200);
-  check('dashboard stats shape', typeof dash.body.data?.totalUsers === 'number' && typeof dash.body.data?.submissions?.pending === 'number');
+  check('dashboard stats shape', typeof dash.body.data?.totalUsers === 'number' && typeof dash.body.data?.publishedRecipes === 'number' && !('submissions' in dash.body.data) && !('publishedBlogs' in dash.body.data));
 } catch (err) {
   failures.push(`aborted: ${err.message}`);
   console.error('\nAborted:', err);
 } finally {
   if (created.recipe) await admin.del(`/admin/recipes/${created.recipe}`).catch(() => {});
-  if (created.blog) await admin.del(`/admin/blogs/${created.blog}`).catch(() => {});
 }
 
 console.log(`\n${passed} passed, ${failures.length} failed`);

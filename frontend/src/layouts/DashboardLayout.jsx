@@ -1,11 +1,8 @@
-import { Images, LayoutDashboard, Upload, User } from 'lucide-react';
+import { User } from 'lucide-react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../features/auth/AuthContext.jsx';
 
 const NAV = [
-  { to: '/dashboard', label: 'Overview', icon: LayoutDashboard, end: true },
-  { to: '/dashboard/uploads', label: 'My uploads', icon: Images },
-  { to: '/dashboard/upload', label: 'Upload', icon: Upload },
   { to: '/dashboard/profile', label: 'Profile', icon: User },
 ];
 
